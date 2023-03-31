@@ -21,22 +21,53 @@ fn manhattan_distance(state: &[[u8; 3]; 3]) -> u8 {
     distance
 }
 
+// Define the Linear Conflict distance heuristic function
+fn linear_conflict(state: &[[u8; 3]; 3]) -> u8 {
+    let mut count = 0;
+    for i in 0..3 {
+        count += linear_conflict_row(&state[i]);
+        count += linear_conflict_column(&[state[0][i], state[1][i], state[2][i]]);
+    }
+    count
+}
+
+fn linear_conflict_row(row: &[u8; 3]) -> u8 {
+    let mut count = 0;
+    for i in 0..3 {
+        if row[i] != 0 && row[i] / 3 == i as u8 {
+            for j in (i + 1)..2 {
+                if row[j] != 0 && row[j] / 3 == i as u8 && row[i] > row[j] {
+                    count += 2;
+                }
+            }
+        }
+    }
+    count
+}
+
+fn linear_conflict_column(column: &[u8; 3]) -> u8 {
+    linear_conflict_row(&[column[0], column[1], column[2]])
+}
+
 // Define the State struct to represent a state in the search
 #[derive(Clone, Eq, Hash, PartialEq)]
 struct State {
     state: [[u8; 3]; 3],
     cost: u8,
-    heuristic: u8,
+    manhattan: u8,
+    linear_conflict: u8,
     parent: Option<Box<State>>,
 }
 
 impl State {
     fn new(state: [[u8; 3]; 3], cost: u8, parent: Option<Box<State>>) -> Self {
-        let heuristic = manhattan_distance(&state);
+        let manhattan = manhattan_distance(&state);
+        let linear_conflict = linear_conflict(&state);
         Self {
             state,
             cost,
-            heuristic,
+            manhattan,
+            linear_conflict,
             parent,
         }
     }
@@ -71,7 +102,7 @@ impl State {
     }
 
     fn total_cost(&self) -> u8 {
-        self.cost + self.heuristic
+        self.cost + self.manhattan + 2*self.linear_conflict
     }
 }
 
