@@ -1,26 +1,17 @@
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::{BinaryHeap, HashSet, HashMap};
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 use rand::seq::SliceRandom;
+use once_cell::sync::Lazy;
+
+use crate::games::walking_distance::simulation;
+
+static LOOKUP_WD_TABLE: Lazy<HashMap<[[u8; 4]; 4], u8>> = Lazy::new(|| simulation());
 
 // Define the goal state
 const GOAL_STATE: [[u8; 4]; 4] = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]];
 
-// Define the Manhattan distance heuristic function
-fn manhattan_distance(state: &[[u8; 4]; 4]) -> u8 {
-    let mut distance = 0;
-    for i in 0..4 {
-        for j in 0..4 {
-            if state[i][j] != 0 {
-                let x = (state[i][j] - 1) / 4;
-                let y = (state[i][j] - 1) % 4;
-                distance += (i as i8 - x as i8).abs() as u8 + (j as i8 - y as i8).abs() as u8;
-            }
-        }
-    }
-    distance
-}
 // Define the Linear Conflict distance heuristic function
 fn linear_conflict(state: &[[u8; 4]; 4]) -> u8 {
     let mut count = 0;
@@ -28,7 +19,7 @@ fn linear_conflict(state: &[[u8; 4]; 4]) -> u8 {
         count += linear_conflict_row(&state[i]);
         count += linear_conflict_column(&[state[0][i], state[1][i], state[2][i], state[3][i]]);
     }
-    count
+    return count;
 }
 
 fn linear_conflict_row(row: &[u8; 4]) -> u8 {
@@ -42,11 +33,41 @@ fn linear_conflict_row(row: &[u8; 4]) -> u8 {
             }
         }
     }
-    count
+    return count;
 }
 
 fn linear_conflict_column(column: &[u8; 4]) -> u8 {
     linear_conflict_row(&[column[0], column[1], column[2], column[3]])
+}
+
+fn walking_distance(state: &[[u8; 4]; 4]) -> u8 {
+    let mut h_wd_board: [[u8; 4]; 4] = [[0; 4]; 4];
+    let mut v_wd_board: [[u8; 4]; 4] = [[0; 4]; 4];
+    let goal =  GOAL_STATE;
+    for i in 0..4 {
+        for j in 0..4 {
+            if state[i][j] != 0 {
+                if state[i][j] == goal[i][j]{
+                    h_wd_board[i][i] += 1;
+                }else {
+                    let val = (((state[i][j] as i8 - 1) / 4) as f32).floor() as usize;
+                    h_wd_board[i][val] += 1;
+                }
+            }
+            if state[j][i] != 0 {
+                if state[j][i] == goal[j][i]{
+                    v_wd_board[i][i] += 1;
+                }else {
+                    let val = ((state[j][i] + 3) %  4) as usize;
+                    v_wd_board[i][val] += 1;
+                }
+            }
+        }
+    }
+    let mut count = 0;
+    count += LOOKUP_WD_TABLE.get(&h_wd_board).unwrap();
+    count += LOOKUP_WD_TABLE.get(&v_wd_board).unwrap();
+    return count;
 }
 
 // Define the State struct to represent a state in the search
@@ -54,20 +75,20 @@ fn linear_conflict_column(column: &[u8; 4]) -> u8 {
 struct State {
     state: [[u8; 4]; 4],
     cost: u8,
-    manhattan: u8,
     linear_conflict: u8,
+    walking_distance: u8,
     parent: Option<Box<State>>,
 }
 
 impl State {
     fn new(state: [[u8; 4]; 4], cost: u8, parent: Option<Box<State>>) -> Self {
-        let manhattan = manhattan_distance(&state);
         let linear_conflict = linear_conflict(&state);
+        let walking_distance = walking_distance(&state);
         Self {
             state,
             cost,
-            manhattan,
             linear_conflict,
+            walking_distance,
             parent,
         }
     }
@@ -102,7 +123,7 @@ impl State {
     }
 
     fn total_cost(&self) -> u8 {
-        self.cost + self.manhattan + 2*self.linear_conflict
+        self.cost + self.linear_conflict +self.walking_distance
     }
 }
 
@@ -169,6 +190,7 @@ fn get_invetrsion_count(linear_state: [u8; 16]) -> u16{
     return invetrsion_count;
 }
 
+//Checks if state is solvable
 fn is_solvable(state: [[u8; 4]; 4]) -> bool{
     let mut linear_state: [u8; 16] = [0; 16];
     let mut counter = 0;
@@ -197,6 +219,7 @@ pub fn random_state() -> [[u8; 4]; 4]{
     return state;
 }
 
+//Shuffle state with Fisher–Yates shuffle
 pub fn n_random_moves_from_goal(n: u16) -> [[u8; 4]; 4]{
     let mut state:[[u8; 4]; 4] = GOAL_STATE;
     let mut x = 0;
@@ -222,6 +245,5 @@ pub fn n_random_moves_from_goal(n: u16) -> [[u8; 4]; 4]{
         state[x][y] = state[coord.0 as usize][coord.1 as usize];
         state[coord.0 as usize][coord.1 as usize] = 0;
     }
-    println!("{:?}", state);
     return state;
 }

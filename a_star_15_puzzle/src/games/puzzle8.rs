@@ -183,7 +183,7 @@ fn is_solvable(state: [[u8; 3]; 3]) -> bool{
     return inversion_count % 2 == 0;
 }
 
-//Shuffle state with n random moves
+//Shuffle state with Fisher–Yates shuffle
 pub fn random_state() -> [[u8; 3]; 3]{
     let mut state:[[u8; 3]; 3];
     loop {
