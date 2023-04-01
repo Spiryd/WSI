@@ -53,7 +53,7 @@ fn puzzle15_from_random() {
 }
 
 fn puzzle15_from_n_moves() {
-    let start_state: [[u8; 4]; 4] = puzzle15::n_random_moves_from_goal(60);
+    let start_state: [[u8; 4]; 4] = puzzle15::n_random_moves_from_goal(1000);
     let now = Instant::now();
     if let Some(path) = puzzle15::a_star_search(start_state) {
         println!("path length = {}", path.len());

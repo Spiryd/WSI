@@ -12,6 +12,21 @@ static LOOKUP_WD_TABLE: Lazy<HashMap<[[u8; 4]; 4], u8>> = Lazy::new(|| simulatio
 // Define the goal state
 const GOAL_STATE: [[u8; 4]; 4] = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]];
 
+// Define the Manhattan distance heuristic function
+fn manhattan_distance(state: &[[u8; 4]; 4]) -> u8 {
+    let mut distance = 0;
+    for i in 0..4 {
+        for j in 0..4 {
+            if state[i][j] != 0 {
+                let x = (state[i][j] - 1) / 4;
+                let y = (state[i][j] - 1) % 4;
+                distance += (i as i8 - x as i8).abs() as u8 + (j as i8 - y as i8).abs() as u8;
+            }
+        }
+    }
+    distance
+}
+
 // Define the Linear Conflict distance heuristic function
 fn linear_conflict(state: &[[u8; 4]; 4]) -> u8 {
     let mut count = 0;
@@ -77,6 +92,7 @@ pub struct State {
     cost: u8,
     linear_conflict: u8,
     walking_distance: u8,
+    manhattan: u8,
     parent: Option<Box<State>>,
 }
 
@@ -84,11 +100,13 @@ impl State {
     fn new(state: [[u8; 4]; 4], cost: u8, parent: Option<Box<State>>) -> Self {
         let linear_conflict = linear_conflict(&state);
         let walking_distance = walking_distance(&state);
+        let manhattan = manhattan_distance(&state);
         Self {
             state,
             cost,
             linear_conflict,
             walking_distance,
+            manhattan,
             parent,
         }
     }
@@ -123,7 +141,7 @@ impl State {
     }
 
     fn total_cost(&self) -> u8 {
-        self.cost + self.linear_conflict +self.walking_distance
+        self.cost + (self.manhattan / 3) + self.linear_conflict +self.walking_distance
     }
 }
 
@@ -166,7 +184,7 @@ pub fn a_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
     
         // Add the current state to the visited set
         visited.insert(current_state.clone());
-    
+        
         // Generate the successor states and add them to the priority queue
         for successor_state in current_state.successors() {
             // Check if the successor state has already been visited
@@ -176,6 +194,7 @@ pub fn a_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
         }
         //println!("{:?}", &queue);
     }
+    println!("visited nodes = {:?}", visited.len());
     // If the queue is empty and the goal state has not been found, return None
     None
 }
