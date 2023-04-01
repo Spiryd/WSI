@@ -4,9 +4,10 @@ use games::puzzle15;
 use games::walking_distance;
 use std::time::Instant;
 use dialoguer::{console::Term, theme::ColorfulTheme, Select};
+use std::mem;
 
 fn main() {
-    let items = vec!["8 Puzzle form shuffle", "15 puzzle from n moves", "15 Puzzle form shuffle", "walking distance", "Exit"];
+    let items = vec!["8 Puzzle form shuffle", "15 puzzle from n moves", "15 Puzzle form shuffle", "walking distance", "State Size", "Exit"];
     loop {
         let selection = Select::with_theme(&ColorfulTheme::default())
         .items(&items)
@@ -19,6 +20,7 @@ fn main() {
             2 => puzzle15_from_n_moves(),
             3 => puzzle15_from_random(),
             4 => println!("{:?}", walking_distance::simulation()),
+            5 => println!("{:?}", mem::size_of::<puzzle15::State>()),
             _ => break
         }
     }
@@ -38,6 +40,9 @@ fn puzzle15_from_random() {
     let start_state: [[u8; 4]; 4] = puzzle15::random_state();
     let now = Instant::now();
     if let Some(path) = puzzle15::a_star_search(start_state) {
+        for node in &path{
+            println!("{:?}", node);
+        }
         println!("path length = {}", path.len());
     } else {
         println!("Goal state not found.");

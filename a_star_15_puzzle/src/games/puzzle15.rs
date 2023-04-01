@@ -71,8 +71,8 @@ fn walking_distance(state: &[[u8; 4]; 4]) -> u8 {
 }
 
 // Define the State struct to represent a state in the search
-#[derive(Clone, Eq, Hash, PartialEq)]
-struct State {
+#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+pub struct State {
     state: [[u8; 4]; 4],
     cost: u8,
     linear_conflict: u8,
@@ -116,7 +116,7 @@ impl State {
                 let mut new_state = self.state.clone();
                 new_state[x][y] = new_state[nx][ny];
                 new_state[nx][ny] = 0;
-                successors.push(Self::new(new_state, self.cost + 1, Some(Box::new(self.clone()))));
+                successors.push(Self::new(new_state,  self.cost + 1, Some(Box::new(self.clone()))));
             }
         }
         successors
@@ -150,6 +150,7 @@ pub fn a_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
     let mut visited = HashSet::new();
     while let Some(current_state) = queue.pop() {
         // Check if the current state is the goal state
+        //println!("{:?}", current_state.total_cost());
         if current_state.is_goal_state() {
             // Trace back the path from the goal state to the start state
             let mut path = vec![];
@@ -173,6 +174,7 @@ pub fn a_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
                 queue.push(successor_state);
             }
         }
+        //println!("{:?}", &queue);
     }
     // If the queue is empty and the goal state has not been found, return None
     None
