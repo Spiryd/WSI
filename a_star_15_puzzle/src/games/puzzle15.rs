@@ -268,3 +268,57 @@ pub fn n_random_moves_from_goal(n: u16) -> [[u8; 4]; 4]{
     }
     return state;
 }
+
+// Define the IDA* search function
+pub fn ida_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
+    // Define the initial bound as the heuristic value of the starting state
+    let mut bound = State::new(start_state, 0, None).total_cost();
+    // Define the set to store the visited states
+    let mut visited = HashSet::new();
+    // Trace back the path from the start state
+    let mut path = vec![start_state];
+    // Loop until a solution is found or the maximum bound is exceeded
+    loop {
+        let t = search(&mut path, 0, bound as u32, &mut visited);
+        if t == 0 {
+            // If the search returns 0, it means a solution was found
+            return Some(path);
+        } else if t == std::u32::MAX {
+            // If the search returns the maximum u32 value, it means the maximum bound was exceeded
+            return None;
+        } else {
+            // If the search returns a non-zero value, it means the bound needs to be increased
+            bound = t as u8;
+        }
+    }
+}
+
+// Define the search function that performs IDDFS with a given bound
+fn search(path: &mut Vec<[[u8; 4]; 4]>, g: u8, bound: u32, visited: &mut HashSet<State>) -> u32 {
+    //println!("{:?}", path);
+    let current_state = State::new(path.last().unwrap().clone(), g, None);
+    let f = current_state.total_cost();
+    if f > bound as u8 {
+        return f as u32;
+    }
+    if current_state.is_goal_state() {
+        return 0;
+    }
+    let mut min_cost = std::u32::MAX;
+    visited.insert(current_state.clone());
+    for successor_state in current_state.successors() {
+        if !visited.contains(&successor_state) {
+            path.push(successor_state.state);
+            let t = search(path, g + 1, bound, visited);
+            if t == 0 {
+                // If a solution was found, return 0
+                return 0;
+            } else if t < min_cost {
+                // Otherwise, update the minimum cost
+                min_cost = t;
+            }
+            path.pop();
+        }
+    }
+    min_cost
+}
