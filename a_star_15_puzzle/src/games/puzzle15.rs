@@ -201,14 +201,26 @@ pub fn a_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
 
 fn get_invetrsion_count(linear_state: [u8; 16]) -> u16{
     let mut invetrsion_count = 0;
-    for i in 0..16 {
+    for i in 0..15 {
         for j in (i+1)..16 {
-            if linear_state[i] > 0 && linear_state[j] > 0 && linear_state[i] > linear_state[j] {
+            if linear_state[j] != 0 && linear_state[i] != 0 && linear_state[i] > linear_state[j] {
                 invetrsion_count += 1;
             }
         }
     }
     return invetrsion_count;
+}
+
+fn find_slot_position(state: [[u8; 4]; 4]) -> usize{
+    // start from bottom-right corner of matrix
+    for i in (0..4).rev() {
+        for j in (0..4).rev() {
+            if state[i][j] == 0 {
+                return 4 - i;
+            }
+        }        
+    }
+    return 0;
 }
 
 //Checks if state is solvable
@@ -221,9 +233,13 @@ fn is_solvable(state: [[u8; 4]; 4]) -> bool{
             counter += 1;
         }
     }
-
     let inversion_count = get_invetrsion_count(linear_state);
-    return inversion_count % 2 == 0;
+    let pos_x = find_slot_position(state);
+    if pos_x % 2 == 1{
+        return inversion_count % 2 == 0;
+    } else {
+        return inversion_count % 2 == 1;
+    }
 }
 
 //Shuffle state with Fisher–Yates shuffle
@@ -236,6 +252,7 @@ pub fn random_state() -> [[u8; 4]; 4]{
         if is_solvable(state) {
             break;
         }
+        //println!("pool");
     }
     return state;
 }
