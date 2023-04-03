@@ -28,6 +28,12 @@ fn main() {
 fn puzzle8_from_random() {
     let start_state: [[u8; 3]; 3] = puzzle8::random_state();
     if let Some(path) = puzzle8::a_star_search(start_state) {
+        for node in &path{
+            for row in node{
+                println!("{:?}", row);
+            }
+            println!("");
+        }
         println!("path length = {}", path.len());
     } else {
         println!("Goal state not found.");
@@ -40,7 +46,10 @@ fn puzzle15_from_random() {
     let now = Instant::now();
     if let Some(path) = puzzle15::a_star_search(start_state) {
         for node in &path{
-            println!("{:?}", node);
+            for row in node{
+                println!("{:?}", row);
+            }
+            println!("");
         }
         println!("path length = {}", path.len());
     } else {
@@ -55,6 +64,12 @@ fn puzzle15_from_n_moves() {
     let start_state: [[u8; 4]; 4] = puzzle15::n_random_moves_from_goal(50);
     let now = Instant::now();
     if let Some(path) = puzzle15::a_star_search(start_state) {
+        for node in &path{
+            for row in node{
+                println!("{:?}", row);
+            }
+            println!("");
+        }
         println!("path length = {}", path.len());
     } else {
         println!("Goal state not found.");

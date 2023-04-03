@@ -179,6 +179,7 @@ pub fn a_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
             }
             path.push(current.state);
             path.reverse();
+            println!("number of visited states = {:?}", visited.len());
             return Some(path);
         }
     
@@ -194,7 +195,6 @@ pub fn a_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
         }
         //println!("{:?}", &queue);
     }
-    println!("visited nodes = {:?}", visited.len());
     // If the queue is empty and the goal state has not been found, return None
     None
 }
@@ -226,7 +226,7 @@ fn is_solvable(state: [[u8; 4]; 4]) -> bool{
     return inversion_count % 2 == 0;
 }
 
-//Shuffle state with n random moves
+//Shuffle state with Fisher–Yates shuffle
 pub fn random_state() -> [[u8; 4]; 4]{
     let mut state:[[u8; 4]; 4];
     loop {
@@ -240,7 +240,7 @@ pub fn random_state() -> [[u8; 4]; 4]{
     return state;
 }
 
-//Shuffle state with Fisher–Yates shuffle
+//Shuffle state with n random moves
 pub fn n_random_moves_from_goal(n: u16) -> [[u8; 4]; 4]{
     let mut state:[[u8; 4]; 4] = GOAL_STATE;
     let mut x = 0;
@@ -282,6 +282,7 @@ pub fn ida_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
         let t = search(&mut path, 0, bound as u32, &mut visited);
         if t == 0 {
             // If the search returns 0, it means a solution was found
+            println!("number of visited states = {:?}", visited.len());
             return Some(path);
         } else if t == std::u32::MAX {
             // If the search returns the maximum u32 value, it means the maximum bound was exceeded
@@ -297,6 +298,7 @@ pub fn ida_star_search(start_state: [[u8; 4]; 4]) -> Option<Vec<[[u8; 4]; 4]>> {
 fn search(path: &mut Vec<[[u8; 4]; 4]>, g: u8, bound: u32, visited: &mut HashSet<State>) -> u32 {
     //println!("{:?}", path);
     let current_state = State::new(path.last().unwrap().clone(), g, None);
+    //println!("{:?}", current_state.total_cost());
     let f = current_state.total_cost();
     if f > bound as u8 {
         return f as u32;
