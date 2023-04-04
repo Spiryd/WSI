@@ -4,9 +4,10 @@ use games::puzzle15;
 use std::thread;
 use std::time::Instant;
 use dialoguer::{console::Term, theme::ColorfulTheme, Select};
+use games::puzzle15_WD;
 
 fn main() {
-    let items = vec!["8 Puzzle form shuffle", "15 puzzle from n moves", "15 Puzzle form shuffle", "IDA* from shuffle", "Collect Data", "Exit"];
+    let items = vec!["8 Puzzle form shuffle", "15 puzzle from n moves", "15 Puzzle form shuffle", "IDA* from shuffle", "Collect Data", "Collect Data2", "Exit"];
     loop {
         let selection = Select::with_theme(&ColorfulTheme::default())
         .items(&items)
@@ -20,6 +21,7 @@ fn main() {
             3 => puzzle15_from_random(),
             4 => ida(),
             5 => collect_data(),
+            6 => collect_data2(),
             _ => break
         }
     }
@@ -121,3 +123,30 @@ fn collect_data(){
         handle.join().unwrap();
     }
 }
+
+fn collect_data2() {
+
+    let start_state: [[u8; 4]; 4] = puzzle15_WD::n_random_moves_from_goal(40);
+    //println!("start");
+
+    let now = Instant::now();
+    if let Some(path) = puzzle15::a_star_search(start_state) {
+        println!("path length = {}", path.len());
+    } else {
+        println!("Goal state not found.");
+    }
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed); 
+    println!("\n");
+
+    let now = Instant::now();
+    if let Some(path) = puzzle15_WD::a_star_search(start_state) {
+        println!("path length = {}", path.len());
+    } else {
+        println!("Goal state not found.");
+    }
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed); 
+    println!("\n");
+}
+

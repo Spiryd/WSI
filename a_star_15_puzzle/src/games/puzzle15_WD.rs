@@ -12,49 +12,6 @@ static LOOKUP_WD_TABLE: Lazy<HashMap<[[u8; 4]; 4], u8>> = Lazy::new(|| simulatio
 // Define the goal state
 const GOAL_STATE: [[u8; 4]; 4] = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]];
 
-// Define the Manhattan distance heuristic function
-fn manhattan_distance(state: &[[u8; 4]; 4]) -> u8 {
-    let mut distance = 0;
-    for i in 0..4 {
-        for j in 0..4 {
-            if state[i][j] != 0 {
-                let x = (state[i][j] - 1) / 4;
-                let y = (state[i][j] - 1) % 4;
-                distance += (i as i8 - x as i8).abs() as u8 + (j as i8 - y as i8).abs() as u8;
-            }
-        }
-    }
-    distance
-}
-
-// Define the Linear Conflict distance heuristic function
-fn linear_conflict(state: &[[u8; 4]; 4]) -> u8 {
-    let mut count = 0;
-    for i in 0..4 {
-        count += linear_conflict_row(&state[i]);
-        count += linear_conflict_column(&[state[0][i], state[1][i], state[2][i], state[3][i]]);
-    }
-    return count;
-}
-
-fn linear_conflict_row(row: &[u8; 4]) -> u8 {
-    let mut count = 0;
-    for i in 0..3 {
-        if row[i] != 0 && row[i] / 4 == i as u8 {
-            for j in (i + 1)..4 {
-                if row[j] != 0 && row[j] / 4 == i as u8 && row[i] > row[j] {
-                    count += 2;
-                }
-            }
-        }
-    }
-    return count;
-}
-
-fn linear_conflict_column(column: &[u8; 4]) -> u8 {
-    linear_conflict_row(&[column[0], column[1], column[2], column[3]])
-}
-
 fn walking_distance(state: &[[u8; 4]; 4]) -> u8 {
     let mut h_wd_board: [[u8; 4]; 4] = [[0; 4]; 4];
     let mut v_wd_board: [[u8; 4]; 4] = [[0; 4]; 4];
@@ -90,19 +47,16 @@ fn walking_distance(state: &[[u8; 4]; 4]) -> u8 {
 pub struct State {
     state: [[u8; 4]; 4],
     cost: u8,
-    linear_conflict: u8,
     walking_distance: u8,
     parent: Option<Box<State>>,
 }
 
 impl State {
     fn new(state: [[u8; 4]; 4], cost: u8, parent: Option<Box<State>>) -> Self {
-        let linear_conflict = linear_conflict(&state);
         let walking_distance = walking_distance(&state);
         Self {
             state,
             cost,
-            linear_conflict,
             walking_distance,
             parent,
         }
@@ -138,7 +92,7 @@ impl State {
     }
 
     fn total_cost(&self) -> u8 {
-        self.cost + self.linear_conflict +self.walking_distance
+        self.cost + self.walking_distance
     }
 }
 
