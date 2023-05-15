@@ -136,18 +136,47 @@ impl GameState {
         }
         false
     }
+    fn count_oneoff(&self, player: u8) -> i32{
+        let mut count = 0;
+        let board = self.board.clone();
+        // check horizontal
+        for row in 0..5 {
+            for col in 0..2 {
+                if board[row][col] == player && board[row][col+1] == player && board[row][col+3]  == player && board[row][col+2] == 0 {
+                    count += 1;
+                }
+                if board[row][col] == player && board[row][col+2] == player && board[row][col+3] == player && board[row][col+1] == 0 {
+                    count += 1;
+                }
+            }
+        }
+        for col in 0..5 {
+            for row in 0..2 {
+                if board[row][col] == player && board[row+1][col] == player && board[row+3][col]  == player && board[row+2][col] == 0 {
+                    count += 1;
+                }
+                if board[row][col] == player && board[row+2][col] == player && board[row+3][col] == player && board[row+1][col] == 0 {
+                    count += 1;
+                }
+            }
+        }
+        count
+    }
     /// Evaluates the [`GameState`] on a scale -100 to 100 
     /// Where -100 is a loss and 100 a win
-    pub fn evaluate(&self) -> i32{
+    fn evaluate(&self) -> i32{
+        let mut score = 0;
         let p: u8 = other(self.turn);
         // We return max heuristic value if a player wins or the other player looses
         if self.check_win(p) || self.check_loose(other(p)){
-            return 100;
+            return i32::MAX;
         }
         if self.check_win(other(p)) || self.check_loose(p){
-            return -100;
+            return i32::MIN;
         }
-        0
+        score += self.count_oneoff(p) * 49;
+        score -= self.count_oneoff(other(p)) * 49;
+        score
     }
 }
 
@@ -161,8 +190,8 @@ pub fn move_with_minimax(state: &GameState, depth: u8) -> (usize, usize) {
                 mv = (i, j);
                 let mut tmp_game_state = *state;
                 tmp_game_state.make_move((i, j));
-                if !tmp_game_state.check_loose(state.turn) {
-                    options.push((minimax(&tmp_game_state, depth, true, i32::MIN, i32::MAX),(i, j)));
+                if !tmp_game_state.check_loose(other(state.turn)) {
+                    options.push((minimax(&tmp_game_state, depth - 1, true, i32::MIN, i32::MAX),(i, j)));
                 }           
             }
         }
