@@ -1,2 +1,4 @@
 target/
 *.lock
+tictactoe_minimax/game_server/game_server
+._*
