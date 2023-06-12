@@ -21,7 +21,7 @@ test_pca = pca.fit_transform(x_test, y_test)
 #PCA -> DBSCAN
 from sklearn.cluster import DBSCAN
 eps = 0.5
-min_samples = 20
+min_samples = 10
 print(f"eps = {eps}, min_samples = {min_samples}")
 db = DBSCAN(eps=eps, min_samples=min_samples)
 db = db.fit(train_pca)
@@ -37,4 +37,5 @@ print("Procent szumu:", noise_percentage)
 # ARI(adjusted rand index)
 from sklearn.metrics.cluster import adjusted_rand_score
 # y_test / clusters_km compare
+print(accuracy_score(y_test, clusters_db))
 print ("ARI of training set: {:.2f}".format(adjusted_rand_score(y_test, clusters_db)))
